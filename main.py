@@ -7,7 +7,7 @@ import random as rd
 
 def resize_img(src_img, scale=1.0):
     if scale != 1.0:
-        h, w, c = src_img.shape
+        h, w, _ = src_img.shape
         h = int(h * scale)
         w = int(w * scale)
         resized_img = cv2.resize(src_img, (w, h), interpolation=cv2.INTER_LINEAR)
@@ -16,7 +16,7 @@ def resize_img(src_img, scale=1.0):
         return src_img
 
 
-def temp(src_img, limit=7.):
+def min_max_snap(src_img, limit=7.):
     w, h = src_img.shape
     new_img = np.zeros_like(src_img)
     for i in range(w):
@@ -38,7 +38,7 @@ def remove_bright_pixels(src_img, rm_from=120):
 
 
 def prepare_mask(src_img, size=3):
-    mask = temp(src_img, limit=1)
+    mask = min_max_snap(src_img, limit=1)
     kernel = np.ones((size, size), np.uint8)
     mask = cv2.erode(mask, kernel, iterations=1)
     return mask
@@ -62,7 +62,7 @@ def process_image(img, scale=1.0):
     processed_img = (frangi(processed_img, gamma=0.7, beta=0.15))
     processed_img = (processed_img * 255).astype(np.uint8)
     processed_img = cv2.medianBlur(processed_img, 3)
-    processed_img = temp(processed_img, 35)
+    processed_img = min_max_snap(processed_img, 35)
     cv2.imwrite('frangi.jpg', processed_img)
 
     kernel = np.ones((6, 6), np.uint8)
@@ -71,6 +71,7 @@ def process_image(img, scale=1.0):
     processed_img = cv2.morphologyEx(processed_img, cv2.MORPH_OPEN, kernel)
     cv2.imwrite('post-open.jpg', processed_img)
 
+    processed_img = cv2.bitwise_and(processed_img, processed_img, mask=mask)
     processed_img = processed_img.astype(np.uint8)
     cv2.imwrite('final-img.jpg', processed_img)
     return processed_img

@@ -1,19 +1,20 @@
 import cv2
 import numpy as np
 import math
-from skimage.filters import frangi
 
 
 class ProcessImage:
 
-    # def __init__(self):
-    #     self.mask = None
-
-    def slice_img(src_img, size):
+    def slice_img(src_img, size, all=True):
         slices = []
-        for x in range(size - 1, src_img.shape[0] - size, 1):
-            for y in range(size - 1, src_img.shape[1] - size, 1):
-                slices.append(src_img[x:x+size, y:y+size])
+        if all:
+            for x in range(size - 1, src_img.shape[0] - size, 1):
+                for y in range(size - 1, src_img.shape[1] - size, 1):
+                    slices.append(src_img[x:x+size, y:y+size])
+        else:
+            for x in range(size - 1, src_img.shape[0] - size, 2):
+                for y in range(size - 1, src_img.shape[1] - size, 2):
+                    slices.append(src_img[x:x+size, y:y+size])
 
         return slices
 
@@ -27,7 +28,6 @@ class ProcessImage:
 
         flat_huMoments = [item for sublist in huMoments for item in sublist]
         return flat_huMoments
-
 
     def extract_green(src_img):
         _, green_channel, _ = cv2.split(src_img)  # split img into 3 channels: blue, green, red
@@ -62,32 +62,14 @@ class ProcessImage:
     def preprocess(src_img):
         img = ProcessImage.resize_img(src_img.copy(), scale=1.0)
         img = ProcessImage.extract_green(img)
-        # to ma w zalozeniu pozbyc sie tego swiatla ktore dzieli duze vessele na 2
-        # kernel = np.ones((5, 5), np.uint8)
-        # img = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel)
+
+        mask = ProcessImage.prepare_mask(img, border_size=5)
+
+        # blurowanie które pozostawia krawedzie ostre, przynajmniej w zalożeniach bo nie widzialem zmiany
+        img = cv2.bilateralFilter(img, 9, 11, 11)
 
         # zwiększenie kontrastu
         clahe = cv2.createCLAHE(clipLimit=5.0, tileGridSize=(9, 9))
         img = clahe.apply(img)
 
-        # maska na zewnętrzny okrąg
-        # self.mask = self.prepare_mask(img, border_size=25)
-
-        # zastosowanie filtru frangi
-        # img = (frangi(img))
-        # img = (img * 255).astype(np.uint8)
-
-        # Mialoby pomoc wypelnic vessele po filtru frangi ale nie dziala dobrze xD
-        # kernel = np.ones((6, 6), np.uint8)
-        # img = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel)
-        # kernel = np.ones((3, 3), np.uint8)
-        # img = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel)
-
-        # binaryzacja obrazu
-        # img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
-
-        #cv2.imshow('img', img_sliced[26])
-        #cv2.waitKey(0)
-        #cv2.destroyAllWindows()
-
-        return img
+        return mask, img

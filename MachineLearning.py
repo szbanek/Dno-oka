@@ -1,3 +1,5 @@
+import math
+
 import cv2
 from sklearn.neighbors import KNeighborsClassifier
 from processImage import ProcessImage
@@ -6,29 +8,25 @@ from imblearn.under_sampling import RandomUnderSampler
 
 
 class Classifier:
-    def __init__(self, trainImages_x, trainImages_y, n_neighbors=5, sliceSize=5):
+    def __init__(self, trainImages_x, trainImages_y, n_neighbors=11, sliceSize=5):
         self.sliceSize = sliceSize
-        self.model = KNeighborsClassifier(n_neighbors=n_neighbors)
+        self.model = KNeighborsClassifier(n_neighbors=n_neighbors, n_jobs=-1)
         self.x_train, self.y_train = [], []
         print('Iterating through train images')
+
         # slice obrazu oraz obliczanie hu momentów dla każdej jego części
         for img in trainImages_x:
-            img_sliced = ProcessImage.slice_img(img, self.sliceSize)
+            img_sliced = ProcessImage.slice_img(img, self.sliceSize, all=False)
             for img_part in img_sliced:
-                flat_img = [item for sublist in img_part for item in sublist]
-                while len(flat_img) < self.sliceSize * self.sliceSize:
-                    flat_img.append(flat_img[0])
-
-                moments = list(cv2.moments(img_part).values())
                 huMoments = ProcessImage.get_hu(img_part)
-                allMoments = np.append(moments, huMoments)
-
-                self.x_train.append(huMoments)
+                var = math.sqrt(np.var(img_part))
+                x = np.append(huMoments,var)
+                self.x_train.append(x)
 
         print('Iterating through train expert images')
         # slice obrazu eksperckiego i wybieranie jego centralnego punktu
         for img in trainImages_y:
-            img_sliced = ProcessImage.slice_img(img, self.sliceSize)
+            img_sliced = ProcessImage.slice_img(img, self.sliceSize, all=False)
             for img_part in img_sliced:
                 center_pixel = img_part[self.sliceSize//2][self.sliceSize//2]
                 self.y_train.append(center_pixel)
@@ -47,14 +45,10 @@ class Classifier:
         img_sliced = ProcessImage.slice_img(predictImage, self.sliceSize)
         testCases = []
         for img_part in img_sliced:
-            flat_img = [item for sublist in img_part for item in sublist]
-            while len(flat_img) < self.sliceSize * self.sliceSize:
-                flat_img.append(flat_img[0])
-
-            moments = list(cv2.moments(img_part).values())
             huMoments = ProcessImage.get_hu(img_part)
-            allMoments = np.append(moments, huMoments)
-            testCases.append(huMoments)
+            var = math.sqrt(np.var(img_part))
+            x = np.append(huMoments, var)
+            testCases.append(x)
 
         print('Predicting...')
         y_pred = self.model.predict(testCases)

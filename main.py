@@ -1,6 +1,7 @@
 import evaluateAlgorithm
 from machineLearning import *
 from processImage import *
+from skimage import morphology
 
 pi = ProcessImage()
 
@@ -46,6 +47,14 @@ pi = ProcessImage()
 #     cv2.imwrite('final-img.jpg', processed_img)
 #     return processed_img
 
+# a = np.array([[0, 255, 0, 0, 0, 0],
+#               [255, 255, 255, 0, 255, 0],
+#               [255, 255, 255, 0, 0, 0]], int)
+# a = np.array(a, bool)
+# b = morphology.remove_small_objects(a, min_size=3)
+# b = b * 255
+# print(a)
+# print(b)
 
 train_imgs = []
 expert_imgs = []
@@ -82,11 +91,18 @@ for i in range(5, 6):
 classifier = Classifier(trainImages_x=train_imgs, trainImages_y=expert_imgs)
 y_pred = classifier.predict(predict_imgs[0])
 
+# y_pred = cv2.imread('temp.jpg', cv2.IMREAD_GRAYSCALE)
+# ret, y_pred = cv2.threshold(y_pred, 127, 255, cv2.THRESH_BINARY)
+y_pred = np.array(y_pred, bool)
+y_pred = morphology.remove_small_objects(y_pred, min_size=32)
+y_pred = y_pred * 255
+
+
 confusion_img = evaluateAlgorithm.evaluate(y_pred, expert_predict_imgs[0], imbalanced_data=True)
 model_img_rgb = cv2.cvtColor(expert_predict_imgs[0],
                              cv2.COLOR_GRAY2BGR)  # while concatenating all arrays have to have same dimension
 
-prediction_img_rgb = cv2.cvtColor(y_pred, cv2.COLOR_GRAY2BGR)
+prediction_img_rgb = cv2.cvtColor(y_pred.astype(np.uint8), cv2.COLOR_GRAY2BGR)
 
 images = np.concatenate((prediction_img_rgb, model_img_rgb, confusion_img), axis=1)
 cv2.namedWindow('images', cv2.WINDOW_NORMAL)

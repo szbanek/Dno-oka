@@ -20,9 +20,10 @@ class Classifier:
                 while len(flat_img) < self.sliceSize * self.sliceSize:
                     flat_img.append(flat_img[0])
 
-                moments = cv2.moments(img_part)
+                moments = list(cv2.moments(img_part).values())
                 huMoments = pi.get_hu(img_part)
                 allMoments = np.append(moments, huMoments)
+
                 self.x_train.append(huMoments)
 
         print('Iterating through train expert images')
@@ -51,7 +52,10 @@ class Classifier:
             flat_img = [item for sublist in img_part for item in sublist]
             while len(flat_img) < self.sliceSize * self.sliceSize:
                 flat_img.append(flat_img[0])
+
+            moments = list(cv2.moments(img_part).values())
             huMoments = pi.get_hu(img_part)
+            allMoments = np.append(moments, huMoments)
             testCases.append(huMoments)
 
         print('Predicting...')
@@ -63,7 +67,7 @@ class Classifier:
             for y in range(self.sliceSize - 1, predictImage.shape[1] - self.sliceSize, 1):
                 predicted_image[x, y] = y_pred[i]
                 i += 1
-
+        cv2.imwrite('temp.jpg', predicted_image)
         return predicted_image
 
 

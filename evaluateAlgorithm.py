@@ -26,6 +26,7 @@ def evaluate(prediction, true_model, imbalanced_data=False):
                 FN += 1
                 conf_image[c][r] = 0, 255, 0  # BGR
             else:
+                print(prediction[c][r], true_model[c][r])
                 return -3
 
     accuracy = (TP+TN)/(TP+TN+FN+FP)

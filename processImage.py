@@ -6,10 +6,10 @@ from skimage.filters import frangi
 
 class ProcessImage:
 
-    def __init__(self):
-        self.mask = None
+    # def __init__(self):
+    #     self.mask = None
 
-    def slice_img(self, src_img, size):
+    def slice_img(src_img, size):
         slices = []
         for x in range(size - 1, src_img.shape[0] - size, 1):
             for y in range(size - 1, src_img.shape[1] - size, 1):
@@ -17,7 +17,7 @@ class ProcessImage:
 
         return slices
 
-    def get_hu(self, src_img_part):
+    def get_hu(src_img_part):
         moments = cv2.moments(src_img_part)
         huMoments = cv2.HuMoments(moments)
         # Log scale hu moments
@@ -29,11 +29,11 @@ class ProcessImage:
         return flat_huMoments
 
 
-    def extract_green(self, src_img):
+    def extract_green(src_img):
         _, green_channel, _ = cv2.split(src_img)  # split img into 3 channels: blue, green, red
         return green_channel
 
-    def resize_img(self, src_img, scale=1.0):
+    def resize_img(src_img, scale=1.0):
         if scale != 1.0:
             h, w, _ = src_img.shape
             h = int(h * scale)
@@ -43,7 +43,7 @@ class ProcessImage:
         else:
             return src_img
 
-    def min_max_snap(self, src_img, limit=7.):
+    def min_max_snap(src_img, limit=7.):
         w, h = src_img.shape
         new_img = np.zeros_like(src_img)
         for i in range(w):
@@ -53,15 +53,15 @@ class ProcessImage:
 
         return new_img
 
-    def prepare_mask(self, src_img, border_size=3):
-        mask = self.min_max_snap(src_img, limit=1)
+    def prepare_mask(src_img, border_size=3):
+        mask = ProcessImage.min_max_snap(src_img, limit=1)
         kernel = np.ones((border_size, border_size), np.uint8)
         mask = cv2.erode(mask, kernel, iterations=1)
         return mask
 
-    def preprocess(self, src_img):
-        img = self.resize_img(src_img.copy(), scale=1.0)
-        img = self.extract_green(img)
+    def preprocess(src_img):
+        img = ProcessImage.resize_img(src_img.copy(), scale=1.0)
+        img = ProcessImage.extract_green(img)
         # to ma w zalozeniu pozbyc sie tego swiatla ktore dzieli duze vessele na 2
         # kernel = np.ones((5, 5), np.uint8)
         # img = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel)
@@ -71,7 +71,7 @@ class ProcessImage:
         img = clahe.apply(img)
 
         # maska na zewnętrzny okrąg
-        self.mask = self.prepare_mask(img, border_size=25)
+        # self.mask = self.prepare_mask(img, border_size=25)
 
         # zastosowanie filtru frangi
         # img = (frangi(img))

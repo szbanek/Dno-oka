@@ -9,19 +9,18 @@ class Classifier:
     def __init__(self, trainImages_x, trainImages_y, n_neighbors=5, sliceSize=5):
         self.sliceSize = sliceSize
         self.model = KNeighborsClassifier(n_neighbors=n_neighbors)
-        pi = ProcessImage()
         self.x_train, self.y_train = [], []
         print('Iterating through train images')
         # slice obrazu oraz obliczanie hu momentów dla każdej jego części
         for img in trainImages_x:
-            img_sliced = pi.slice_img(img, self.sliceSize)
+            img_sliced = ProcessImage.slice_img(img, self.sliceSize)
             for img_part in img_sliced:
                 flat_img = [item for sublist in img_part for item in sublist]
                 while len(flat_img) < self.sliceSize * self.sliceSize:
                     flat_img.append(flat_img[0])
 
                 moments = list(cv2.moments(img_part).values())
-                huMoments = pi.get_hu(img_part)
+                huMoments = ProcessImage.get_hu(img_part)
                 allMoments = np.append(moments, huMoments)
 
                 self.x_train.append(huMoments)
@@ -29,7 +28,7 @@ class Classifier:
         print('Iterating through train expert images')
         # slice obrazu eksperckiego i wybieranie jego centralnego punktu
         for img in trainImages_y:
-            img_sliced = pi.slice_img(img, self.sliceSize)
+            img_sliced = ProcessImage.slice_img(img, self.sliceSize)
             for img_part in img_sliced:
                 center_pixel = img_part[self.sliceSize//2][self.sliceSize//2]
                 self.y_train.append(center_pixel)
@@ -45,8 +44,7 @@ class Classifier:
 
     def predict(self, predictImage):
         print('Preparing predict image')
-        pi = ProcessImage()
-        img_sliced = pi.slice_img(predictImage, self.sliceSize)
+        img_sliced = ProcessImage.slice_img(predictImage, self.sliceSize)
         testCases = []
         for img_part in img_sliced:
             flat_img = [item for sublist in img_part for item in sublist]
@@ -54,7 +52,7 @@ class Classifier:
                 flat_img.append(flat_img[0])
 
             moments = list(cv2.moments(img_part).values())
-            huMoments = pi.get_hu(img_part)
+            huMoments = ProcessImage.get_hu(img_part)
             allMoments = np.append(moments, huMoments)
             testCases.append(huMoments)
 

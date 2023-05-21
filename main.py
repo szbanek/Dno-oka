@@ -3,8 +3,6 @@ from machineLearning import *
 from processImage import *
 from skimage import morphology
 
-pi = ProcessImage()
-
 # def min_max_snap(src_img, limit=7.):
 #     w, h = src_img.shape
 #     new_img = np.zeros_like(src_img)
@@ -61,7 +59,7 @@ expert_imgs = []
 for i in range(4, 5):
     train_img_path = 'data/Image_0' + str(i) + 'L.jpg'
     train_img = cv2.imread(train_img_path)
-    train_img = pi.preprocess(train_img)
+    train_img = ProcessImage.preprocess(train_img)
     train_imgs.append(train_img)
 
     expert_img_path = 'goal/Image_0' + str(i) + 'L_1stHO.png'
@@ -80,7 +78,7 @@ expert_predict_imgs = []
 for i in range(5, 6):
     predict_img_path = 'data/Image_0' + str(i) + 'L.jpg'
     predict_img = cv2.imread(predict_img_path)
-    predict_img = pi.preprocess(predict_img)
+    predict_img = ProcessImage.preprocess(predict_img)
     predict_imgs.append(predict_img)
 
     expert_img_path = 'goal/Image_0' + str(i) + 'L_1stHO.png'

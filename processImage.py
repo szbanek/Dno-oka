@@ -12,8 +12,8 @@ class ProcessImage:
                 for y in range(size - 1, src_img.shape[1] - size, 1):
                     slices.append(src_img[x:x+size, y:y+size])
         else:
-            for x in range(size - 1, src_img.shape[0] - size, 2):
-                for y in range(size - 1, src_img.shape[1] - size, 2):
+            for x in range(size - 1, src_img.shape[0] - size, 5):
+                for y in range(size - 1, src_img.shape[1] - size, 5):
                     slices.append(src_img[x:x+size, y:y+size])
 
         return slices

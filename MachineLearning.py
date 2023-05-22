@@ -1,10 +1,11 @@
 import math
-
 import cv2
 from sklearn.neighbors import KNeighborsClassifier
+from skimage.feature import local_binary_pattern
 from processImage import ProcessImage
 import numpy as np
 from imblearn.under_sampling import RandomUnderSampler
+import mahotas
 
 
 class Classifier:
@@ -18,10 +19,25 @@ class Classifier:
         for img in trainImages_x:
             img_sliced = ProcessImage.slice_img(img, self.sliceSize, all=False)
             for img_part in img_sliced:
+                x = np.array([])
+
                 huMoments = ProcessImage.get_hu(img_part)
-                var = math.sqrt(np.var(img_part))
-                x = np.append(huMoments,var)
+                x = np.append(x, huMoments)
+
+                # lbp = local_binary_pattern(img_part, 8*5, 5, method='ror')
+                # lbp = sum(lbp)
+                # x = np.append(x, lbp)
+
+                # var = math.sqrt(np.var(img_part))
+                # x = np.append(x, var)
+
+                zm = mahotas.features.zernike_moments(img_part, sliceSize)
+                zm = np.array([zm[2], zm[4], zm[6], zm[12], zm[20]])
+                x = np.append(x, zm)
+
                 self.x_train.append(x)
+                if len(self.x_train) % 1000 == 0:
+                    print(len(self.x_train))
 
         print('Iterating through train expert images')
         # slice obrazu eksperckiego i wybieranie jego centralnego punktu
@@ -45,9 +61,22 @@ class Classifier:
         img_sliced = ProcessImage.slice_img(predictImage, self.sliceSize)
         testCases = []
         for img_part in img_sliced:
+            x = np.array([])
+
             huMoments = ProcessImage.get_hu(img_part)
-            var = math.sqrt(np.var(img_part))
-            x = np.append(huMoments, var)
+            x = np.append(x, huMoments)
+
+            # lbp = local_binary_pattern(img_part, 8*5, 5, method='ror')
+            # lbp = sum(lbp)
+            # x = np.append(x, lbp)
+
+            # var = math.sqrt(np.var(img_part))
+            # x = np.append(x, var)
+
+            zm = mahotas.features.zernike_moments(img_part, self.sliceSize)
+            zm = np.array([zm[2], zm[4], zm[6], zm[12], zm[20]])
+            x = np.append(x, zm)
+
             testCases.append(x)
 
         print('Predicting...')

@@ -52,6 +52,10 @@ def naive_vessel_detection(image_no=5):
 
     prediction_img_rgb = cv2.cvtColor(output_image.astype(np.uint8), cv2.COLOR_GRAY2BGR)
 
+    cv2.imwrite('confusion_img.jpg', confusion_img)
+    cv2.imwrite('expert_img.jpg', expert_img)
+    cv2.imwrite('prediction.jpg', output_image)
+
     images = np.concatenate((prediction_img_rgb, model_img_rgb, confusion_img), axis=1)
     cv2.namedWindow('images', cv2.WINDOW_NORMAL)
     cv2.resizeWindow('images', 1800, 600)
@@ -110,8 +114,11 @@ def classificator_vessel_detection(image_no=5, training_set=None, use_previous=F
     confusion_img = evaluateAlgorithm.evaluate(y_pred, expert_predict_img, imbalanced_data=True)
     model_img_rgb = cv2.cvtColor(expert_predict_img,
                                  cv2.COLOR_GRAY2BGR)  # while concatenating all arrays have to have same dimension
-
+    cv2.imwrite('confusion_img.jpg', confusion_img)
+    cv2.imwrite('expert_img.jpg', expert_predict_img)
+    cv2.imwrite('prediction.jpg', y_pred)
     prediction_img_rgb = cv2.cvtColor(y_pred.astype(np.uint8), cv2.COLOR_GRAY2BGR)
+
 
     images = np.concatenate((prediction_img_rgb, model_img_rgb, confusion_img), axis=1)
     cv2.namedWindow('images', cv2.WINDOW_NORMAL)
@@ -122,5 +129,5 @@ def classificator_vessel_detection(image_no=5, training_set=None, use_previous=F
     cv2.destroyAllWindows()
 
 
-# naive_vessel_detection(5)
-classificator_vessel_detection(5, use_previous=False)
+# naive_vessel_detection(10)
+classificator_vessel_detection(10, training_set=[1, 2, 3, 4, 5], use_previous=False)

@@ -90,5 +90,3 @@ class Classifier:
                 i += 1
         cv2.imwrite('temp.jpg', predicted_image)
         return predicted_image
-
-
